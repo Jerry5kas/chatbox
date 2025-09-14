@@ -153,7 +153,7 @@ export default function MessageContent({ message }) {
           let formattedText = text
           
           // Handle inline code
-          if (detectedType.metadata?.hasInlineCode) {
+          if (detectedType.metadata && detectedType.metadata.hasInlineCode) {
             formattedText = formatInlineCode(text)
           } else {
             // Handle links in regular text

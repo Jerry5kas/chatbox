@@ -1,7 +1,16 @@
 import React from 'react'
 
 export default function SafeMessageContent({ message }) {
-  const { text, type, metadata } = message
+  const { text, type, metadata } = message || {}
+  
+  // Handle edge case where message is undefined
+  if (!text) {
+    return (
+      <div className="text-sm leading-6 text-red-500">
+        Error: No message content
+      </div>
+    )
+  }
 
   // Simple fallback that always works
   const renderSimpleContent = () => {
