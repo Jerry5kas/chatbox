@@ -9,10 +9,14 @@ import SafeMessageContent from './SafeMessageContent'
 import MessageComposer from './MessageComposer'
 import BotPersonalitySelector from './BotPersonalitySelector'
 import SettingsPanel from './SettingsPanel'
+import AISettingsPanel from './AISettingsPanel'
 import { FocusTrap, ScreenReaderAnnouncements, KeyboardShortcuts, HighContrastToggle, SkipToContent } from './AccessibilityFeatures'
 import { SettingsIcon, KeyboardIcon, DownloadIcon, TrashIcon, ChevronDownIcon } from './icons/SvgIcons'
 import { getPersonalityById } from '../data/botPersonalities'
 import { smartResponseSystem } from '../utils/smartResponses'
+import { aiChatSystem } from '../utils/aiResponses'
+import { freeAIProviders } from '../utils/freeAIProviders'
+import { testSmartResponses } from '../utils/testSmartResponses'
 
 export default function ChatBox() {
   const { messages, botPersonality, addMessage, addReaction, changeBotPersonality, clearMessages, exportMessages } = useChatStorage()
@@ -20,7 +24,10 @@ export default function ChatBox() {
   const [isBotTyping, setIsBotTyping] = useState(false)
   const [userTyping, setUserTyping] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showAISettings, setShowAISettings] = useState(false)
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false)
+  const [aiMode, setAiMode] = useState(false) // Toggle between smart responses and AI
+  const [apiKey, setApiKey] = useState(localStorage.getItem('chatbox-api-key') || '')
   const listRef = useRef(null)
 
   useEffect(() => {
@@ -40,42 +47,47 @@ export default function ChatBox() {
     // Show typing indicator
     setIsBotTyping(true)
 
-    // Generate smart response
-    setTimeout(() => {
+    // Generate response (AI or Smart)
+    setTimeout(async () => {
       setIsBotTyping(false)
       
       try {
-        // Analyze user message for smart response
-        console.log('Analyzing message:', messageData.text)
-        const analysis = smartResponseSystem.analyzeMessage(messageData.text)
-        console.log('Analysis result:', analysis)
+        let response = ''
         
-        const smartResponse = smartResponseSystem.generateResponse(analysis, botPersonality)
-        console.log('Generated smart response:', smartResponse)
-        
-        // Update conversation history
-        smartResponseSystem.updateHistory(messageData.text, smartResponse)
+        if (aiMode && apiKey) {
+          // Use AI API
+          console.log('🤖 Using AI API for response...')
+          response = await freeAIProviders.getAIResponse(messageData.text, botPersonality, apiKey)
+          console.log('AI Response:', response)
+        } else {
+          // Use smart response system
+          console.log('🧠 Using smart response system...')
+          const analysis = smartResponseSystem.analyzeMessage(messageData.text)
+          response = smartResponseSystem.generateResponse(analysis, botPersonality)
+          smartResponseSystem.updateHistory(messageData.text, response)
+        }
         
         addMessage({
           from: 'bot',
-          text: smartResponse,
+          text: response,
           type: 'text',
           metadata: {
-            analysis: analysis,
-            context: smartResponseSystem.getContext()
+            aiMode: aiMode,
+            personality: botPersonality,
+            timestamp: new Date().toISOString()
           }
         })
       } catch (error) {
-        console.error('Error in smart response system:', error)
-        // Fallback to a simple response
+        console.error('Error generating response:', error)
+        // Fallback response
         addMessage({
           from: 'bot',
-          text: 'Hello! I\'m here to help!',
+          text: 'Hello! I\'m here to help! 😊',
           type: 'text',
           metadata: {}
         })
       }
-    }, 1500 + Math.random() * 1000) // Random delay between 1.5-2.5 seconds
+    }, 1500 + Math.random() * 1000)
   }
 
   function handleTyping(isTyping) {
@@ -121,6 +133,25 @@ export default function ChatBox() {
           {/* Action Buttons */}
           <div className="flex items-center gap-1">
             <HighContrastToggle />
+            
+            {/* AI Mode Toggle */}
+            <button
+              onClick={() => setShowAISettings(true)}
+              className={`p-2 rounded-lg transition-colors group ${
+                aiMode 
+                  ? 'bg-green-100 dark:bg-green-900/20' 
+                  : 'hover:bg-slate-100 dark:hover:bg-slate-700'
+              }`}
+              title={aiMode ? "AI Mode: ON - Click to configure" : "AI Mode: OFF - Click to enable"}
+              aria-label="Open AI settings"
+            >
+              <span className={`text-lg group-hover:scale-110 transition-transform ${
+                aiMode ? 'text-green-600' : ''
+              }`}>
+                {aiMode ? '🤖' : '🧠'}
+              </span>
+            </button>
+            
             <button
               onClick={() => setShowKeyboardShortcuts(true)}
               className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors group"
@@ -166,9 +197,14 @@ export default function ChatBox() {
               <span style={{ color: 'var(--color-text-secondary)' }}>Export</span>
             </button>
             <button
-              onClick={clearMessages}
+              onClick={() => {
+                clearMessages()
+                localStorage.clear()
+                console.log('🧹 Cleared localStorage and messages')
+                console.log('🧪 Run testSmartResponses() in console to test the system')
+              }}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors group"
-              title="Clear chat history"
+              title="Clear chat history and localStorage"
             >
               <TrashIcon className="w-3.5 h-3.5 group-hover:scale-110 transition-transform text-red-500" />
               <span className="text-red-500">Clear</span>
@@ -231,6 +267,15 @@ export default function ChatBox() {
       <SettingsPanel
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
+      />
+      
+      <AISettingsPanel
+        isOpen={showAISettings}
+        onClose={() => setShowAISettings(false)}
+        apiKey={apiKey}
+        setApiKey={setApiKey}
+        aiMode={aiMode}
+        setAiMode={setAiMode}
       />
       
       <KeyboardShortcuts
