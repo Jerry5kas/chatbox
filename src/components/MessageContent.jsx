@@ -92,60 +92,87 @@ export default function MessageContent({ message }) {
   }
 
   const renderContent = () => {
-    const detectedType = type || detectMessageType(text)
+    try {
+      const detectedType = type || detectMessageType(text)
+      
+      console.log('MessageContent render:', { text, type, detectedType })
 
-    switch (detectedType.type) {
-      case 'code':
-        return (
-          <div>
-            <CodeSnippet 
-              code={detectedType.metadata.code}
-              language={detectedType.metadata.language}
-            />
-          </div>
-        )
+      switch (detectedType.type) {
+        case 'code':
+          if (!detectedType.metadata?.code) {
+            console.warn('Code block without code content')
+            return <div className="text-sm leading-6 whitespace-pre-wrap">{text}</div>
+          }
+          return (
+            <div>
+              <CodeSnippet 
+                code={detectedType.metadata.code}
+                language={detectedType.metadata.language}
+              />
+            </div>
+          )
 
-      case 'image':
-        return (
-          <div>
-            <ImagePreview 
-              src={detectedType.metadata.src}
-              alt={detectedType.metadata.alt}
-            />
-          </div>
-        )
+        case 'image':
+          if (!detectedType.metadata?.src) {
+            console.warn('Image without src')
+            return <div className="text-sm leading-6 whitespace-pre-wrap">{text}</div>
+          }
+          return (
+            <div>
+              <ImagePreview 
+                src={detectedType.metadata.src}
+                alt={detectedType.metadata.alt}
+              />
+            </div>
+          )
 
-      case 'link':
-        return (
-          <div>
-            <LinkPreview url={detectedType.metadata.url} />
-          </div>
-        )
+        case 'link':
+          if (!detectedType.metadata?.url) {
+            console.warn('Link without url')
+            return <div className="text-sm leading-6 whitespace-pre-wrap">{text}</div>
+          }
+          return (
+            <div>
+              <LinkPreview url={detectedType.metadata.url} />
+            </div>
+          )
 
-      case 'file':
-        return (
-          <div>
-            <FileAttachment file={detectedType.metadata.file} />
-          </div>
-        )
+        case 'file':
+          if (!detectedType.metadata?.file) {
+            console.warn('File without file object')
+            return <div className="text-sm leading-6 whitespace-pre-wrap">{text}</div>
+          }
+          return (
+            <div>
+              <FileAttachment file={detectedType.metadata.file} />
+            </div>
+          )
 
-      case 'text':
-      default:
-        let formattedText = text
-        
-        // Handle inline code
-        if (detectedType.metadata.hasInlineCode) {
-          formattedText = formatInlineCode(text)
-        } else {
-          // Handle links in regular text
-          formattedText = formatLinks(text)
-        }
+        case 'text':
+        default:
+          let formattedText = text
+          
+          // Handle inline code
+          if (detectedType.metadata?.hasInlineCode) {
+            formattedText = formatInlineCode(text)
+          } else {
+            // Handle links in regular text
+            formattedText = formatLinks(text)
+          }
 
-        return (
-          <div className="text-sm leading-6 whitespace-pre-wrap">
-            {formattedText}
-          </div>
-        )
+          return (
+            <div className="text-sm leading-6 whitespace-pre-wrap">
+              {formattedText}
+            </div>
+          )
+      }
+    } catch (error) {
+      console.error('Error rendering message content:', error)
+      return (
+        <div className="text-sm leading-6 whitespace-pre-wrap text-red-500">
+          Error rendering message: {text}
+        </div>
+      )
     }
   }
 

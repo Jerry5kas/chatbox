@@ -4,6 +4,7 @@ import { useChatStorage } from '../hooks/useChatStorage'
 import MessageReactions from './MessageReactions'
 import TypingIndicator from './TypingIndicator'
 import MessageContent from './MessageContent'
+import SafeMessageContent from './SafeMessageContent'
 import MessageComposer from './MessageComposer'
 import BotPersonalitySelector from './BotPersonalitySelector'
 import { getRandomResponse, getPersonalityById } from '../data/botPersonalities'
@@ -80,7 +81,7 @@ export default function ChatBox() {
           <div key={m.id} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'} animate-slide-in group`}>
             <div className="max-w-[80%]">
               <div className={`${m.from === 'me' ? 'bg-sky-600 text-white rounded-lg rounded-br-none' : 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg rounded-bl-none'} px-4 py-2 transition-colors duration-300`}> 
-                <MessageContent message={m} />
+                <SafeMessageContent message={m} />
               </div>
               <div className={`text-xs mt-1 px-2 ${m.from === 'me' ? 'text-right text-slate-500 dark:text-slate-400' : 'text-left text-slate-400 dark:text-slate-500'}`}>
                 {formatTime(m.timestamp)}

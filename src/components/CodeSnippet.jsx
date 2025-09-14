@@ -3,6 +3,16 @@ import React, { useState } from 'react'
 export default function CodeSnippet({ code, language = 'javascript', title }) {
   const [copied, setCopied] = useState(false)
 
+  // Handle edge cases
+  if (!code || code.trim() === '') {
+    console.warn('CodeSnippet: No code provided')
+    return (
+      <div className="bg-slate-100 dark:bg-slate-700 rounded-lg p-3 border border-slate-200 dark:border-slate-600">
+        <div className="text-sm text-slate-500 dark:text-slate-400">Empty code block</div>
+      </div>
+    )
+  }
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(code)

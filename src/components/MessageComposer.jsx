@@ -49,10 +49,11 @@ export default function MessageComposer({ onSend, onTyping }) {
     const messageType = detectMessageType(trimmed)
     console.log('Detected message type:', messageType)
 
+    // Send as simple text first to test
     onSend({
       text: trimmed,
-      type: messageType.type,
-      metadata: messageType.metadata
+      type: 'text',
+      metadata: {}
     })
     setText('')
   }
