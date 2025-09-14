@@ -2,6 +2,7 @@ import React from 'react'
 import { ThemeProvider } from './contexts/ThemeContext'
 import ChatBox from './components/ChatBox'
 import ThemeToggle from './components/ThemeToggle'
+import PWAInstallPrompt from './components/PWAInstallPrompt'
 
 export default function App() {
   return (
@@ -18,6 +19,8 @@ export default function App() {
           <ChatBox />
         </div>
       </div>
+      
+      <PWAInstallPrompt />
     </ThemeProvider>
   )
 }

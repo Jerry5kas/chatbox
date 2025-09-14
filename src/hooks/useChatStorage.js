@@ -39,9 +39,25 @@ export function useChatStorage() {
     const newMessage = {
       ...message,
       id: Date.now(),
-      timestamp: new Date()
+      timestamp: new Date(),
+      reactions: {}
     }
     setMessages(prev => [...prev, newMessage])
+  }
+
+  const addReaction = (messageId, emoji) => {
+    setMessages(prev => prev.map(msg => {
+      if (msg.id === messageId) {
+        const newReactions = { ...msg.reactions }
+        if (newReactions[emoji]) {
+          newReactions[emoji] += 1
+        } else {
+          newReactions[emoji] = 1
+        }
+        return { ...msg, reactions: newReactions }
+      }
+      return msg
+    }))
   }
 
   const clearMessages = () => {
@@ -65,6 +81,7 @@ export function useChatStorage() {
   return {
     messages,
     addMessage,
+    addReaction,
     clearMessages,
     exportMessages
   }
@@ -76,13 +93,15 @@ function getDemoMessages() {
       id: 1, 
       from: 'bot', 
       text: '👋 Hi! This is a static demo chat.', 
-      timestamp: new Date(Date.now() - 300000) // 5 minutes ago
+      timestamp: new Date(Date.now() - 300000), // 5 minutes ago
+      reactions: { '👍': 2, '❤️': 1 }
     },
     { 
       id: 2, 
       from: 'me', 
       text: 'Looks neat!', 
-      timestamp: new Date(Date.now() - 240000) // 4 minutes ago
+      timestamp: new Date(Date.now() - 240000), // 4 minutes ago
+      reactions: { '😊': 1 }
     }
   ]
 }

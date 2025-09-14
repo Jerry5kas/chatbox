@@ -1,11 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { formatTimestamp, formatTime } from '../utils/dateUtils'
 import { useChatStorage } from '../hooks/useChatStorage'
+import EmojiPicker from './EmojiPicker'
+import MessageReactions from './MessageReactions'
+import TypingIndicator from './TypingIndicator'
 
 export default function ChatBox() {
-  const { messages, addMessage, clearMessages, exportMessages } = useChatStorage()
+  const { messages, addMessage, addReaction, clearMessages, exportMessages } = useChatStorage()
   const [text, setText] = useState('')
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [isBotTyping, setIsBotTyping] = useState(false)
   const listRef = useRef(null)
+  const textareaRef = useRef(null)
 
   useEffect(() => {
     // auto-scroll to bottom
@@ -25,19 +31,55 @@ export default function ChatBox() {
     })
     setText('')
     
-    // demo bot response
+    // Show typing indicator
+    setIsBotTyping(true)
+    
+    // demo bot response with typing delay
     setTimeout(() => {
+      setIsBotTyping(false)
       addMessage({
         from: 'bot',
-        text: 'Nice — thanks for trying this demo!'
+        text: getRandomBotResponse()
       })
-    }, 600)
+    }, 1500 + Math.random() * 1000) // Random delay between 1.5-2.5 seconds
+  }
+
+  function getRandomBotResponse() {
+    const responses = [
+      'Nice — thanks for trying this demo!',
+      'That\'s interesting! Tell me more.',
+      'I see what you mean! 👍',
+      'Great point! What do you think about that?',
+      'Thanks for sharing that with me!',
+      'That\'s a good question. Let me think...',
+      'I appreciate your message! 😊',
+      'Wow, that\'s really cool!',
+      'I understand what you\'re saying.',
+      'That makes sense to me!'
+    ]
+    return responses[Math.floor(Math.random() * responses.length)]
   }
 
   function onKey(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       send()
+    }
+  }
+
+  function handleEmojiSelect(emoji) {
+    const textarea = textareaRef.current
+    if (textarea) {
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const newText = text.substring(0, start) + emoji + text.substring(end)
+      setText(newText)
+      
+      // Focus back to textarea and set cursor position
+      setTimeout(() => {
+        textarea.focus()
+        textarea.setSelectionRange(start + emoji.length, start + emoji.length)
+      }, 0)
     }
   }
 
@@ -69,7 +111,7 @@ export default function ChatBox() {
 
       <div ref={listRef} className="p-4 h-72 overflow-auto space-y-3 bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
         {messages.map((m) => (
-          <div key={m.id} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'} animate-slide-in`}>
+          <div key={m.id} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'} animate-slide-in group`}>
             <div className="max-w-[80%]">
               <div className={`${m.from === 'me' ? 'bg-sky-600 text-white rounded-lg rounded-br-none' : 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg rounded-bl-none'} px-4 py-2 transition-colors duration-300`}> 
                 <div className="text-sm leading-6 whitespace-pre-wrap">{m.text}</div>
@@ -77,20 +119,38 @@ export default function ChatBox() {
               <div className={`text-xs mt-1 px-2 ${m.from === 'me' ? 'text-right text-slate-500 dark:text-slate-400' : 'text-left text-slate-400 dark:text-slate-500'}`}>
                 {formatTime(m.timestamp)}
               </div>
+              <MessageReactions
+                messageId={m.id}
+                reactions={m.reactions}
+                onAddReaction={addReaction}
+              />
             </div>
           </div>
         ))}
+        
+        {/* Typing Indicator */}
+        <TypingIndicator isTyping={isBotTyping} botName="Support" />
       </div>
 
-      <div className="p-3 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 transition-colors duration-300">
+      <div className="p-3 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 transition-colors duration-300 relative">
         <div className="flex gap-2">
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={onKey}
-            placeholder="Type a message... (Enter to send)"
-            className="flex-1 resize-none h-10 rounded-xl border border-slate-200 dark:border-slate-600 px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-800 transition-colors duration-300"
-          />
+          <div className="flex-1 relative">
+            <textarea
+              ref={textareaRef}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={onKey}
+              placeholder="Type a message... (Enter to send)"
+              className="w-full resize-none h-10 rounded-xl border border-slate-200 dark:border-slate-600 px-3 py-2 pr-10 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-800 transition-colors duration-300"
+            />
+            <button
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+              title="Add emoji"
+            >
+              😊
+            </button>
+          </div>
           <button
             onClick={send}
             className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-sky-600 text-white text-sm font-medium shadow-sm hover:brightness-95 transition-all duration-200 hover:scale-105"
@@ -98,6 +158,12 @@ export default function ChatBox() {
             Send
           </button>
         </div>
+        
+        <EmojiPicker
+          onEmojiSelect={handleEmojiSelect}
+          isOpen={showEmojiPicker}
+          onClose={() => setShowEmojiPicker(false)}
+        />
       </div>
     </div>
   )
