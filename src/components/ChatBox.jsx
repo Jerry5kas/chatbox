@@ -1,18 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { formatTimestamp, formatTime } from '../utils/dateUtils'
 import { useChatStorage } from '../hooks/useChatStorage'
+import { useAdvancedTheme } from '../contexts/AdvancedThemeContext'
 import MessageReactions from './MessageReactions'
 import TypingIndicator from './TypingIndicator'
 import MessageContent from './MessageContent'
 import SafeMessageContent from './SafeMessageContent'
 import MessageComposer from './MessageComposer'
 import BotPersonalitySelector from './BotPersonalitySelector'
+import SettingsPanel from './SettingsPanel'
 import { getRandomResponse, getPersonalityById } from '../data/botPersonalities'
 
 export default function ChatBox() {
   const { messages, botPersonality, addMessage, addReaction, changeBotPersonality, clearMessages, exportMessages } = useChatStorage()
+  const { getUserAvatar, getBotAvatar, compactMode, fontSize } = useAdvancedTheme()
   const [isBotTyping, setIsBotTyping] = useState(false)
   const [userTyping, setUserTyping] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
   const listRef = useRef(null)
 
   useEffect(() => {
@@ -51,28 +55,47 @@ export default function ChatBox() {
 
 
   return (
-    <div className="bg-white dark:bg-slate-800 shadow-md rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700 transition-colors duration-300">
-      <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+    <div 
+      className="shadow-md rounded-2xl overflow-hidden border transition-colors duration-300"
+      style={{
+        backgroundColor: 'var(--color-surface)',
+        borderColor: 'var(--color-border)',
+        fontSize: `var(--font-size-base)`
+      }}
+    >
+      <div 
+        className={`${compactMode ? 'px-3 py-2' : 'px-4 py-3'} border-b flex items-center justify-between`}
+        style={{ borderColor: 'var(--color-border)' }}
+      >
         <BotPersonalitySelector
           currentPersonality={botPersonality}
           onPersonalityChange={changeBotPersonality}
         />
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setShowSettings(true)}
+            className="text-xs hover:opacity-75 transition-opacity"
+            style={{ color: 'var(--color-text-secondary)' }}
+            title="Settings"
+          >
+            ⚙️
+          </button>
+          <button
             onClick={exportMessages}
-            className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            className="text-xs hover:opacity-75 transition-opacity"
+            style={{ color: 'var(--color-text-secondary)' }}
             title="Export chat history"
           >
             📥
           </button>
           <button
             onClick={clearMessages}
-            className="text-xs text-slate-400 dark:text-slate-500 hover:text-red-500 transition-colors"
+            className="text-xs hover:opacity-75 transition-opacity hover:text-red-500"
+            style={{ color: 'var(--color-text-secondary)' }}
             title="Clear chat history"
           >
             🗑️
           </button>
-          <div className="text-xs text-slate-400 dark:text-slate-500">Light • static</div>
         </div>
       </div>
 
@@ -118,6 +141,11 @@ export default function ChatBox() {
       <MessageComposer
         onSend={handleSend}
         onTyping={handleTyping}
+      />
+      
+      <SettingsPanel
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
       />
     </div>
   )
