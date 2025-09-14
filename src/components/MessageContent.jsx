@@ -8,39 +8,21 @@ export default function MessageContent({ message }) {
   const { text, type, metadata } = message
 
   const detectMessageType = (text) => {
-    // Detect code blocks
+    // Detect code blocks - improved regex
     if (text.startsWith('```') && text.endsWith('```')) {
-      const codeMatch = text.match(/```(\w+)?\n([\s\S]*?)```/)
+      const codeMatch = text.match(/```(\w+)?\n?([\s\S]*?)```/)
       if (codeMatch) {
         return {
           type: 'code',
           metadata: {
-            code: codeMatch[2],
+            code: codeMatch[2].trim(),
             language: codeMatch[1] || 'text'
           }
         }
       }
     }
 
-    // Detect inline code
-    if (text.includes('`') && text.split('`').length >= 3) {
-      return {
-        type: 'text',
-        metadata: { hasInlineCode: true }
-      }
-    }
-
-    // Detect URLs
-    const urlRegex = /(https?:\/\/[^\s]+)/g
-    const urls = text.match(urlRegex)
-    if (urls && urls.length > 0) {
-      return {
-        type: 'link',
-        metadata: { url: urls[0] }
-      }
-    }
-
-    // Detect images (basic image extensions)
+    // Detect images first (more specific)
     const imageRegex = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|svg))/i
     const imageMatch = text.match(imageRegex)
     if (imageMatch) {
@@ -50,6 +32,24 @@ export default function MessageContent({ message }) {
           src: imageMatch[0],
           alt: 'Shared image'
         }
+      }
+    }
+
+    // Detect URLs (less specific)
+    const urlRegex = /(https?:\/\/[^\s]+)/g
+    const urls = text.match(urlRegex)
+    if (urls && urls.length > 0) {
+      return {
+        type: 'link',
+        metadata: { url: urls[0] }
+      }
+    }
+
+    // Detect inline code
+    if (text.includes('`') && text.split('`').length >= 3) {
+      return {
+        type: 'text',
+        metadata: { hasInlineCode: true }
       }
     }
 

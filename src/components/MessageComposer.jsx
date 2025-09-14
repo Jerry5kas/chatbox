@@ -37,6 +37,8 @@ export default function MessageComposer({ onSend, onTyping }) {
     const trimmed = text.trim()
     if (!trimmed) return
 
+    console.log('Sending message:', trimmed)
+
     // Stop typing indicator
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
@@ -44,40 +46,33 @@ export default function MessageComposer({ onSend, onTyping }) {
     setIsTyping(false)
     if (onTyping) onTyping(false)
 
+    const messageType = detectMessageType(trimmed)
+    console.log('Detected message type:', messageType)
+
     onSend({
       text: trimmed,
-      type: detectMessageType(trimmed).type,
-      metadata: detectMessageType(trimmed).metadata
+      type: messageType.type,
+      metadata: messageType.metadata
     })
     setText('')
   }
 
   const detectMessageType = (text) => {
-    // Detect code blocks
+    // Detect code blocks - improved regex
     if (text.startsWith('```') && text.endsWith('```')) {
-      const codeMatch = text.match(/```(\w+)?\n([\s\S]*?)```/)
+      const codeMatch = text.match(/```(\w+)?\n?([\s\S]*?)```/)
       if (codeMatch) {
         return {
           type: 'code',
           metadata: {
-            code: codeMatch[2],
+            code: codeMatch[2].trim(),
             language: codeMatch[1] || 'text'
           }
         }
       }
     }
 
-    // Detect URLs
-    const urlRegex = /(https?:\/\/[^\s]+)/g
-    const urls = text.match(urlRegex)
-    if (urls && urls.length > 0) {
-      return {
-        type: 'link',
-        metadata: { url: urls[0] }
-      }
-    }
-
-    // Detect images
+    // Detect images first (more specific)
     const imageRegex = /(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp|svg))/i
     const imageMatch = text.match(imageRegex)
     if (imageMatch) {
@@ -87,6 +82,16 @@ export default function MessageComposer({ onSend, onTyping }) {
           src: imageMatch[0],
           alt: 'Shared image'
         }
+      }
+    }
+
+    // Detect URLs (less specific)
+    const urlRegex = /(https?:\/\/[^\s]+)/g
+    const urls = text.match(urlRegex)
+    if (urls && urls.length > 0) {
+      return {
+        type: 'link',
+        metadata: { url: urls[0] }
       }
     }
 
@@ -119,6 +124,8 @@ export default function MessageComposer({ onSend, onTyping }) {
     const file = e.target.files[0]
     if (!file) return
 
+    console.log('File selected:', file.name, file.type, file.size)
+
     // For demo purposes, create a mock file object
     const mockFile = {
       name: file.name,
@@ -126,6 +133,8 @@ export default function MessageComposer({ onSend, onTyping }) {
       type: file.type,
       url: URL.createObjectURL(file)
     }
+
+    console.log('Sending file message:', mockFile)
 
     onSend({
       text: `📎 ${file.name}`,
@@ -181,6 +190,31 @@ export default function MessageComposer({ onSend, onTyping }) {
             <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
           </svg>
         </button>
+        
+        {/* Quick test buttons */}
+        <div className="flex items-center gap-1 ml-2 pl-2 border-l border-slate-200 dark:border-slate-600">
+          <button
+            onClick={() => setText('```javascript\nconsole.log("Hello World!");\n```')}
+            className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-colors"
+            title="Test code block"
+          >
+            Code
+          </button>
+          <button
+            onClick={() => setText('https://picsum.photos/400/300')}
+            className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-colors"
+            title="Test image"
+          >
+            Image
+          </button>
+          <button
+            onClick={() => setText('https://github.com')}
+            className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-colors"
+            title="Test link"
+          >
+            Link
+          </button>
+        </div>
       </div>
 
       {/* Input Area */}
