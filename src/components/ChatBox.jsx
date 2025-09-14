@@ -9,6 +9,7 @@ import SafeMessageContent from './SafeMessageContent'
 import MessageComposer from './MessageComposer'
 import BotPersonalitySelector from './BotPersonalitySelector'
 import SettingsPanel from './SettingsPanel'
+import { FocusTrap, ScreenReaderAnnouncements, KeyboardShortcuts, HighContrastToggle, SkipToContent } from './AccessibilityFeatures'
 import { getRandomResponse, getPersonalityById } from '../data/botPersonalities'
 
 export default function ChatBox() {
@@ -17,6 +18,7 @@ export default function ChatBox() {
   const [isBotTyping, setIsBotTyping] = useState(false)
   const [userTyping, setUserTyping] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false)
   const listRef = useRef(null)
 
   useEffect(() => {
@@ -62,6 +64,8 @@ export default function ChatBox() {
         borderColor: 'var(--color-border)',
         fontSize: `var(--font-size-base)`
       }}
+      role="main"
+      aria-label="Chat conversation"
     >
       <div 
         className={`${compactMode ? 'px-3 py-2' : 'px-4 py-3'} border-b flex items-center justify-between`}
@@ -72,11 +76,22 @@ export default function ChatBox() {
           onPersonalityChange={changeBotPersonality}
         />
         <div className="flex items-center gap-2">
+          <HighContrastToggle />
+          <button
+            onClick={() => setShowKeyboardShortcuts(true)}
+            className="text-xs hover:opacity-75 transition-opacity"
+            style={{ color: 'var(--color-text-secondary)' }}
+            title="Keyboard shortcuts"
+            aria-label="Show keyboard shortcuts"
+          >
+            ⌨️
+          </button>
           <button
             onClick={() => setShowSettings(true)}
             className="text-xs hover:opacity-75 transition-opacity"
             style={{ color: 'var(--color-text-secondary)' }}
             title="Settings"
+            aria-label="Open settings"
           >
             ⚙️
           </button>
@@ -99,7 +114,14 @@ export default function ChatBox() {
         </div>
       </div>
 
-      <div ref={listRef} className="p-4 h-72 overflow-auto space-y-3 bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
+      <div 
+        ref={listRef} 
+        className="p-4 h-72 overflow-auto space-y-3 bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900"
+        role="log"
+        aria-label="Chat messages"
+        aria-live="polite"
+        aria-atomic="false"
+      >
         {messages.map((m) => (
           <div key={m.id} className={`flex ${m.from === 'me' ? 'justify-end' : 'justify-start'} animate-slide-in group`}>
             <div className="max-w-[80%]">
@@ -147,6 +169,19 @@ export default function ChatBox() {
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
       />
+      
+      <KeyboardShortcuts
+        isOpen={showKeyboardShortcuts}
+        onClose={() => setShowKeyboardShortcuts(false)}
+      />
+      
+      <ScreenReaderAnnouncements
+        messages={messages}
+        isBotTyping={isBotTyping}
+        userTyping={userTyping}
+      />
+      
+      <SkipToContent />
     </div>
   )
 }
