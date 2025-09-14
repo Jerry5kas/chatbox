@@ -49,7 +49,7 @@ export default function MessageComposer({ onSend, onTyping }) {
     const messageType = detectMessageType(trimmed)
     console.log('Detected message type:', messageType)
 
-    // Send with proper metadata structure
+    // Send with full rich content detection
     onSend({
       text: trimmed,
       type: messageType.type || 'text',
