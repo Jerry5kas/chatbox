@@ -1,13 +1,21 @@
 import { useState, useEffect } from 'react'
 
 const STORAGE_KEY = 'chatbox-messages'
+const PERSONALITY_KEY = 'chatbox-personality'
 
 export function useChatStorage() {
   const [messages, setMessages] = useState([])
+  const [botPersonality, setBotPersonality] = useState('support')
 
-  // Load messages from localStorage on mount
+  // Load messages and personality from localStorage on mount
   useEffect(() => {
     const savedMessages = localStorage.getItem(STORAGE_KEY)
+    const savedPersonality = localStorage.getItem(PERSONALITY_KEY)
+    
+    if (savedPersonality) {
+      setBotPersonality(savedPersonality)
+    }
+    
     if (savedMessages) {
       try {
         const parsed = JSON.parse(savedMessages)
@@ -34,6 +42,11 @@ export function useChatStorage() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(messages))
     }
   }, [messages])
+
+  // Save personality to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(PERSONALITY_KEY, botPersonality)
+  }, [botPersonality])
 
   const addMessage = (message) => {
     const newMessage = {
@@ -78,10 +91,16 @@ export function useChatStorage() {
     URL.revokeObjectURL(url)
   }
 
+  const changeBotPersonality = (newPersonality) => {
+    setBotPersonality(newPersonality)
+  }
+
   return {
     messages,
+    botPersonality,
     addMessage,
     addReaction,
+    changeBotPersonality,
     clearMessages,
     exportMessages
   }
