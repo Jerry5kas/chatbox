@@ -10,7 +10,9 @@ import MessageComposer from './MessageComposer'
 import BotPersonalitySelector from './BotPersonalitySelector'
 import SettingsPanel from './SettingsPanel'
 import { FocusTrap, ScreenReaderAnnouncements, KeyboardShortcuts, HighContrastToggle, SkipToContent } from './AccessibilityFeatures'
-import { getRandomResponse, getPersonalityById } from '../data/botPersonalities'
+import { SettingsIcon, KeyboardIcon, DownloadIcon, TrashIcon, ChevronDownIcon } from './icons/SvgIcons'
+import { getPersonalityById } from '../data/botPersonalities'
+import { smartResponseSystem } from '../utils/smartResponses'
 
 export default function ChatBox() {
   const { messages, botPersonality, addMessage, addReaction, changeBotPersonality, clearMessages, exportMessages } = useChatStorage()
@@ -34,18 +36,29 @@ export default function ChatBox() {
       from: 'me',
       ...messageData
     })
-    
+
     // Show typing indicator
     setIsBotTyping(true)
-    
-    // demo bot response with typing delay
+
+    // Generate smart response
     setTimeout(() => {
       setIsBotTyping(false)
+      
+      // Analyze user message for smart response
+      const analysis = smartResponseSystem.analyzeMessage(messageData.text)
+      const smartResponse = smartResponseSystem.generateResponse(analysis, botPersonality)
+      
+      // Update conversation history
+      smartResponseSystem.updateHistory(messageData.text, smartResponse)
+      
       addMessage({
         from: 'bot',
-        text: getRandomResponse(botPersonality),
+        text: smartResponse,
         type: 'text',
-        metadata: {}
+        metadata: {
+          analysis: analysis,
+          context: smartResponseSystem.getContext()
+        }
       })
     }, 1500 + Math.random() * 1000) // Random delay between 1.5-2.5 seconds
   }
@@ -67,50 +80,85 @@ export default function ChatBox() {
       role="main"
       aria-label="Chat conversation"
     >
+      {/* Enhanced Header */}
       <div 
-        className={`${compactMode ? 'px-3 py-2' : 'px-4 py-3'} border-b flex items-center justify-between`}
-        style={{ borderColor: 'var(--color-border)' }}
+        className={`${compactMode ? 'px-4 py-3' : 'px-6 py-4'} border-b`}
+        style={{ 
+          borderColor: 'var(--color-border)',
+          background: 'linear-gradient(135deg, var(--color-surface) 0%, rgba(255,255,255,0.05) 100%)'
+        }}
       >
-        <BotPersonalitySelector
-          currentPersonality={botPersonality}
-          onPersonalityChange={changeBotPersonality}
-        />
-        <div className="flex items-center gap-2">
-          <HighContrastToggle />
-          <button
-            onClick={() => setShowKeyboardShortcuts(true)}
-            className="text-xs hover:opacity-75 transition-opacity"
-            style={{ color: 'var(--color-text-secondary)' }}
-            title="Keyboard shortcuts"
-            aria-label="Show keyboard shortcuts"
-          >
-            ⌨️
-          </button>
-          <button
-            onClick={() => setShowSettings(true)}
-            className="text-xs hover:opacity-75 transition-opacity"
-            style={{ color: 'var(--color-text-secondary)' }}
-            title="Settings"
-            aria-label="Open settings"
-          >
-            ⚙️
-          </button>
-          <button
-            onClick={exportMessages}
-            className="text-xs hover:opacity-75 transition-opacity"
-            style={{ color: 'var(--color-text-secondary)' }}
-            title="Export chat history"
-          >
-            📥
-          </button>
-          <button
-            onClick={clearMessages}
-            className="text-xs hover:opacity-75 transition-opacity hover:text-red-500"
-            style={{ color: 'var(--color-text-secondary)' }}
-            title="Clear chat history"
-          >
-            🗑️
-          </button>
+        {/* Top Row - Personality & Status */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <BotPersonalitySelector
+              currentPersonality={botPersonality}
+              onPersonalityChange={changeBotPersonality}
+            />
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-700 rounded-full">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                Online
+              </span>
+            </div>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex items-center gap-1">
+            <HighContrastToggle />
+            <button
+              onClick={() => setShowKeyboardShortcuts(true)}
+              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors group"
+              title="Keyboard shortcuts"
+              aria-label="Show keyboard shortcuts"
+            >
+              <KeyboardIcon className="w-4 h-4 group-hover:scale-110 transition-transform" style={{ color: 'var(--color-text-secondary)' }} />
+            </button>
+            <button
+              onClick={() => setShowSettings(true)}
+              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors group"
+              title="Settings"
+              aria-label="Open settings"
+            >
+              <SettingsIcon className="w-4 h-4 group-hover:scale-110 transition-transform" style={{ color: 'var(--color-text-secondary)' }} />
+            </button>
+          </div>
+        </div>
+        
+        {/* Bottom Row - Quick Actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+              {messages.length} messages
+            </span>
+            {messages.length > 0 && (
+              <>
+                <span className="text-xs" style={{ color: 'var(--color-border)' }}>•</span>
+                <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                  Last: {formatTime(messages[messages.length - 1].timestamp)}
+                </span>
+              </>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-1">
+            <button
+              onClick={exportMessages}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors group"
+              title="Export chat history"
+            >
+              <DownloadIcon className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" style={{ color: 'var(--color-text-secondary)' }} />
+              <span style={{ color: 'var(--color-text-secondary)' }}>Export</span>
+            </button>
+            <button
+              onClick={clearMessages}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors group"
+              title="Clear chat history"
+            >
+              <TrashIcon className="w-3.5 h-3.5 group-hover:scale-110 transition-transform text-red-500" />
+              <span className="text-red-500">Clear</span>
+            </button>
+          </div>
         </div>
       </div>
 

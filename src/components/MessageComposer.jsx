@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import EmojiPicker from './EmojiPicker'
+import { AttachmentIcon, CodeIcon, SendIcon, ImageIcon, LinkIcon } from './icons/SvgIcons'
 
 export default function MessageComposer({ onSend, onTyping }) {
   const [text, setText] = useState('')
@@ -204,88 +205,129 @@ export default function MessageComposer({ onSend, onTyping }) {
   }, [])
 
   return (
-    <div className="p-3 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 transition-colors duration-300 relative">
-      {/* Toolbar */}
-      <div className="flex items-center gap-1 mb-2">
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors rounded"
-          title="Attach file"
-        >
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-          </svg>
-        </button>
-        
-        <button
-          onClick={insertCodeBlock}
-          className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors rounded"
-          title="Insert code block"
-        >
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-          </svg>
-        </button>
-        
-        {/* Quick test buttons */}
-        <div className="flex items-center gap-1 ml-2 pl-2 border-l border-slate-200 dark:border-slate-600">
-          <button
-            onClick={() => setText('```javascript\nconsole.log("Hello World!");\n```')}
-            className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-colors"
-            title="Test code block"
-          >
-            Code
-          </button>
-          <button
-            onClick={() => setText('https://picsum.photos/400/300')}
-            className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-colors"
-            title="Test image"
-          >
-            Image
-          </button>
-          <button
-            onClick={() => setText('https://github.com')}
-            className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-colors"
-            title="Test link"
-          >
-            Link
-          </button>
+    <div 
+      className="border-t transition-colors duration-300 relative"
+      style={{ 
+        borderColor: 'var(--color-border)',
+        backgroundColor: 'var(--color-surface)'
+      }}
+    >
+      {/* Enhanced Toolbar */}
+      <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="flex items-center justify-between">
+          {/* Left Actions */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors group"
+              title="Attach file"
+            >
+              <AttachmentIcon className="w-4 h-4 group-hover:scale-110 transition-transform" style={{ color: 'var(--color-text-secondary)' }} />
+              <span className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>Attach</span>
+            </button>
+            
+            <button
+              onClick={insertCodeBlock}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors group"
+              title="Insert code block"
+            >
+              <CodeIcon className="w-4 h-4 group-hover:scale-110 transition-transform" style={{ color: 'var(--color-text-secondary)' }} />
+              <span className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>Code</span>
+            </button>
+          </div>
+
+          {/* Quick Test Buttons */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setText('```javascript\nconsole.log("Hello World!");\n```')}
+              className="flex items-center gap-1 px-2 py-1 text-xs rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors group"
+              title="Test code block"
+            >
+              <CodeIcon className="w-3 h-3 group-hover:scale-110 transition-transform" style={{ color: 'var(--color-text-secondary)' }} />
+              <span style={{ color: 'var(--color-text-secondary)' }}>Code</span>
+            </button>
+            <button
+              onClick={() => setText('https://picsum.photos/400/300')}
+              className="flex items-center gap-1 px-2 py-1 text-xs rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors group"
+              title="Test image"
+            >
+              <ImageIcon className="w-3 h-3 group-hover:scale-110 transition-transform" style={{ color: 'var(--color-text-secondary)' }} />
+              <span style={{ color: 'var(--color-text-secondary)' }}>Image</span>
+            </button>
+            <button
+              onClick={() => setText('https://github.com')}
+              className="flex items-center gap-1 px-2 py-1 text-xs rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors group"
+              title="Test link"
+            >
+              <LinkIcon className="w-3 h-3 group-hover:scale-110 transition-transform" style={{ color: 'var(--color-text-secondary)' }} />
+              <span style={{ color: 'var(--color-text-secondary)' }}>Link</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Input Area */}
-      <div className="flex gap-2">
-        <div className="flex-1 relative">
-          <textarea
-            ref={textareaRef}
-            value={text}
-            onChange={handleTextChange}
-            onKeyDown={handleKeyDown}
-            placeholder="Type a message... (Enter to send, Shift+Enter for new line)"
-            className="w-full resize-none h-10 rounded-xl border border-slate-200 dark:border-slate-600 px-3 py-2 pr-10 text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-800 transition-colors duration-300"
-            aria-label="Message input"
-            aria-describedby="message-help"
-            role="textbox"
-            aria-multiline="true"
-          />
+      {/* Enhanced Input Area */}
+      <div className="p-4">
+        <div className="flex gap-3">
+          <div className="flex-1 relative">
+            <textarea
+              ref={textareaRef}
+              value={text}
+              onChange={handleTextChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Type a message... (Enter to send, Shift+Enter for new line)"
+              className="w-full resize-none min-h-[44px] max-h-32 rounded-2xl border-2 px-4 py-3 pr-12 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50"
+              style={{
+                borderColor: 'var(--color-border)',
+                backgroundColor: 'var(--color-background)',
+                color: 'var(--color-text)',
+                '--placeholder-color': 'var(--color-text-secondary)'
+              }}
+              aria-label="Message input"
+              aria-describedby="message-help"
+              role="textbox"
+              aria-multiline="true"
+            />
+            
+            {/* Emoji Button */}
+            <button
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors group"
+              title="Add emoji"
+              aria-label="Add emoji"
+              aria-expanded={showEmojiPicker}
+            >
+              <span className="text-lg group-hover:scale-110 transition-transform">😊</span>
+            </button>
+
+            {/* Character Count */}
+            {text.length > 0 && (
+              <div className="absolute bottom-1 left-3 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                {text.length}
+              </div>
+            )}
+          </div>
+          
+          {/* Send Button */}
           <button
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-            title="Add emoji"
-            aria-label="Add emoji"
-            aria-expanded={showEmojiPicker}
+            onClick={handleSend}
+            disabled={!text.trim()}
+            className="flex items-center justify-center w-12 h-11 rounded-2xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-sm"
+            style={{
+              backgroundColor: text.trim() ? 'var(--color-primary)' : 'var(--color-border)',
+              color: 'white'
+            }}
+            aria-label="Send message"
           >
-            😊
+            <SendIcon className="w-5 h-5" />
           </button>
         </div>
-        <button
-          onClick={handleSend}
-          className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-sky-600 text-white text-sm font-medium shadow-sm hover:brightness-95 transition-all duration-200 hover:scale-105"
-          aria-label="Send message"
-          disabled={!text.trim()}
-        >
-          Send
-        </button>
+
+        {/* Input Help Text */}
+        <div id="message-help" className="mt-2 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+          Press <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-xs">Enter</kbd> to send, 
+          <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-xs ml-1">Shift+Enter</kbd> for new line
+        </div>
       </div>
 
       {/* Hidden file input */}
