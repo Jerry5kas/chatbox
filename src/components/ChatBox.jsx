@@ -44,22 +44,37 @@ export default function ChatBox() {
     setTimeout(() => {
       setIsBotTyping(false)
       
-      // Analyze user message for smart response
-      const analysis = smartResponseSystem.analyzeMessage(messageData.text)
-      const smartResponse = smartResponseSystem.generateResponse(analysis, botPersonality)
-      
-      // Update conversation history
-      smartResponseSystem.updateHistory(messageData.text, smartResponse)
-      
-      addMessage({
-        from: 'bot',
-        text: smartResponse,
-        type: 'text',
-        metadata: {
-          analysis: analysis,
-          context: smartResponseSystem.getContext()
-        }
-      })
+      try {
+        // Analyze user message for smart response
+        console.log('Analyzing message:', messageData.text)
+        const analysis = smartResponseSystem.analyzeMessage(messageData.text)
+        console.log('Analysis result:', analysis)
+        
+        const smartResponse = smartResponseSystem.generateResponse(analysis, botPersonality)
+        console.log('Generated smart response:', smartResponse)
+        
+        // Update conversation history
+        smartResponseSystem.updateHistory(messageData.text, smartResponse)
+        
+        addMessage({
+          from: 'bot',
+          text: smartResponse,
+          type: 'text',
+          metadata: {
+            analysis: analysis,
+            context: smartResponseSystem.getContext()
+          }
+        })
+      } catch (error) {
+        console.error('Error in smart response system:', error)
+        // Fallback to a simple response
+        addMessage({
+          from: 'bot',
+          text: 'Hello! I\'m here to help!',
+          type: 'text',
+          metadata: {}
+        })
+      }
     }, 1500 + Math.random() * 1000) // Random delay between 1.5-2.5 seconds
   }
 
