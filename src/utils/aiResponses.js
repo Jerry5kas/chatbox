@@ -1,7 +1,8 @@
 // AI-powered responses using Hugging Face Transformers.js
 // This runs entirely in the browser - no backend needed!
 
-import { pipeline } from '@xenova/transformers'
+// Note: Transformers.js is disabled for now due to build issues
+// import { pipeline } from '@xenova/transformers'
 
 class AIChatSystem {
   constructor() {
@@ -14,19 +15,11 @@ class AIChatSystem {
     if (this.isInitialized) return
 
     try {
-      console.log('🤖 Initializing AI models...')
-      
-      // Initialize sentiment classifier (small, fast model)
-      this.classifier = await pipeline('sentiment-analysis', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english')
-      
-      // Initialize text generator (for responses)
-      this.generator = await pipeline('text-generation', 'Xenova/gpt2')
-      
-      this.isInitialized = true
-      console.log('✅ AI models loaded successfully!')
+      console.log('🤖 Transformers.js is disabled for production build')
+      console.log('💡 Use free AI APIs instead - see AI Settings panel')
+      this.isInitialized = false
     } catch (error) {
       console.error('❌ Failed to load AI models:', error)
-      // Fallback to smart response system
       this.isInitialized = false
     }
   }
